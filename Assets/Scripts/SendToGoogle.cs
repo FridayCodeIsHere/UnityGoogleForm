@@ -1,13 +1,16 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 public class SendToGoogle : MonoBehaviour
 {
     [SerializeField] private InputField _nameField;
     [SerializeField] private InputField _emailField;
     [SerializeField] private InputField _phoneField;
+    [SerializeField] private Dropdown _phoneCodeField;
+
+    private const int VALIDATE_PHONE = 9;
 
     private string _name;
     private string _email;
@@ -22,17 +25,32 @@ public class SendToGoogle : MonoBehaviour
         form.AddField("entry.723998528", _email);
         form.AddField("entry.2076706937", _phone);
 
-        byte[] rawData = form.data;
-        WWW www = new WWW(BASE_URL, rawData);
-        yield return www;
+        using (UnityWebRequest request = UnityWebRequest.Post(BASE_URL, form))
+        {
+            yield return request.SendWebRequest();
+            if (request.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.LogError(request.error);
+            }
+        }
     }
 
     public void SendData()
     {
+        
+        int indexCode = _phoneCodeField.value;
         _name = _nameField.text;
         _email = _emailField.text;
-        _phone = _phoneField.text;
+        _phone = _phoneCodeField.options[indexCode].text + _phoneField.text;
 
         StartCoroutine(Post());
+    }
+
+    private void ValidateData()
+    {
+        if (_phoneField.text.Length < VALIDATE_PHONE)
+        {
+            Debug.LogWarning($"You have incorrect phone number. You must have 9 numbers instead {_phoneField.text.Length} after code country operator");
+        }
     }
 }
