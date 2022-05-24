@@ -37,20 +37,34 @@ public class SendToGoogle : MonoBehaviour
 
     public void SendData()
     {
-        
-        int indexCode = _phoneCodeField.value;
-        _name = _nameField.text;
-        _email = _emailField.text;
-        _phone = _phoneCodeField.options[indexCode].text + _phoneField.text;
+        if (ValidateData())
+        {
+            int indexCode = _phoneCodeField.value;
+            _name = _nameField.text;
+            _email = _emailField.text;
+            _phone = _phoneCodeField.options[indexCode].text + _phoneField.text;
 
-        StartCoroutine(Post());
+            StartCoroutine(Post());
+        }
     }
 
-    private void ValidateData()
+    private bool ValidateData()
     {
         if (_phoneField.text.Length < VALIDATE_PHONE)
         {
             Debug.LogWarning($"You have incorrect phone number. You must have 9 numbers instead {_phoneField.text.Length} after code country operator");
+            return false;
         }
+        if (_nameField.text.Length < 2)
+        {
+            Debug.LogWarning("The name is so short");
+            return false;
+        }
+        if (!_emailField.text.Contains("@"))
+        {
+            Debug.LogWarning("Incorrect email, you need write @");
+            return false;
+        }
+        return true;
     }
 }
